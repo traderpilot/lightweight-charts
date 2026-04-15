@@ -1,5 +1,5 @@
 // src/routes/market.rs
-use axum::{Json, extract::Query, routing::get, Router};
+use axum::{Json, extract::Query};
 use crate::models::candle::Candle;
 use crate::services::data_service::get_historical_candles;
 use crate::AppState;
@@ -7,7 +7,6 @@ use crate::MAX_CANDLES;
 use crate::models::indicators::IndicatorParams;
 use serde::Deserialize;
 use std::collections::VecDeque;
-use std::sync::Arc;
 
 #[derive(Deserialize)]
 pub struct MarketQuery {
@@ -31,7 +30,7 @@ pub async fn get_candles(Query(params): Query<MarketQuery>, state: AppState) -> 
     let interval = params.interval.unwrap_or_else(|| "1m".to_string());
     
     // Check rate limit per endpoint
-    let client_ip = "default"; // Would be extracted from request in production
+    let _client_ip = "default"; // Would be extracted from request in production
     
     // Check cache first (include interval in cache key)
     let cache_key = format!("{}:{}", symbol, interval);

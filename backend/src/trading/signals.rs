@@ -1,6 +1,6 @@
 // src/trading/signals.rs
 use crate::models::candle::Candle;
-use crate::models::orders::{Signal, SignalIndicators, SignalType};
+use crate::models::orders::{Signal, SignalIndicators};
 use std::collections::VecDeque;
 
 pub struct SignalGenerator;

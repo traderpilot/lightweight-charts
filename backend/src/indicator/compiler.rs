@@ -1,6 +1,6 @@
 use crate::indicator::ast::*;
 use crate::indicator::dsl::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 #[derive(Debug)]
 pub enum CompileError {

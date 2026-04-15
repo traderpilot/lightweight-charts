@@ -5,7 +5,6 @@ use axum::{
 };
 use std::sync::Arc;
 use std::time::Instant;
-use tokio::sync::Mutex;
 use std::collections::HashMap;
 
 pub struct HealthState {

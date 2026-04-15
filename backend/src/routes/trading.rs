@@ -3,7 +3,6 @@ use axum::{
     extract::{Query, State, Json},
     http::{HeaderMap, StatusCode},
     routing::{get, post},
-    response::IntoResponse,
     Router,
 };
 use serde::{Deserialize, Serialize};
@@ -12,7 +11,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use parking_lot::Mutex;
 
-use crate::AppState;
 use crate::trading::{
     StrategyConfig, StrategyManager, StrategyType,
 };

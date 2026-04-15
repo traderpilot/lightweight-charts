@@ -42,7 +42,7 @@ function loadSymbol(symbol) {
 }
 
 function loadData() {
-    fetch(`http://localhost:3000/api/candles?symbol=${currentSymbol}`)
+    fetch(`/api/candles?symbol=${currentSymbol}`)
         .then(res => res.json())
         .then(data => {
             // Set candlestick data
@@ -63,7 +63,8 @@ function loadData() {
 }
 
 function connectWebSocket() {
-    socket = new WebSocket("ws://localhost:3000/ws");
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+    socket = new WebSocket(`${wsProtocol}://${window.location.host}/ws`)
 
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);

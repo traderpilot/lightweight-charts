@@ -192,9 +192,9 @@
 
 ### Sprint 2.4: Database Persistence (Days 4-5) ✅ DONE
 
-- [x] **Decision**: RocksDB vs PostgreSQL
-  - RocksDB chosen for embedded persistence and faster MVP rollout
-  - Persist candle history in `data/rocksdb`
+- [x] **Decision**: embedded persistence vs PostgreSQL
+  - Embedded persistence chosen for in-memory performance and durable storage
+  - Persist candle history in `data/persistence`
 
 **Phase 2 Acceptance Criteria**:
 - [x] All errors logged as structured JSON

@@ -7,7 +7,7 @@ use crate::models::candle::Candle;
 use crate::models::indicators::update_indicators_last;
 use crate::models::binance::*;
 use crate::channels::MarketData;
-use crate::metrics::{CANDLES_PROCESSED, PARSE_ERRORS, BINANCE_RECONNECTS, BINANCE_CONNECTED, MESSAGE_LATENCY, CIRCUIT_BREAKER_STATE};
+use crate::metrics::{CANDLES_PROCESSED, PARSE_ERRORS, BINANCE_RECONNECTS, BINANCE_CONNECTED, CIRCUIT_BREAKER_STATE};
 use crate::ws::circuit_breaker::CircuitBreaker;
 use std::collections::VecDeque;
 use futures::StreamExt;
@@ -48,12 +48,13 @@ pub fn get_error_rate() -> f64 {
 
 fn calculate_backoff(attempt: u32) -> tokio::time::Duration {
     // Exponential backoff with jitter: 1s, 2s, 4s, 8s, 16s, 32s, 60s (max)
-    let base = tokio::time::Duration::from_secs(1);
-    let exp = base * 2_u32.pow(attempt.min(6)); // Cap at 64 seconds
-    let jitter = tokio::time::Duration::from_millis(
-        (fastrand::u64(0..1000) as u64) // Random 0-999ms jitter
-    );
-    exp + jitter
+    const MAX_BACKOFF_SECS: u64 = 60;
+    let base_secs = 1_u64;
+    let backoff_secs = base_secs.saturating_mul(2_u64.pow(attempt.min(6)));
+    let capped_secs = backoff_secs.min(MAX_BACKOFF_SECS);
+    let jitter_ms = fastrand::u64(200..1200);
+
+    tokio::time::Duration::from_secs(capped_secs) + tokio::time::Duration::from_millis(jitter_ms)
 }
 
 fn add_to_dead_letter_queue(error: String, payload: String) {
@@ -120,7 +121,7 @@ pub async fn start_binance_listener(state: AppState) {
                 let backoff = calculate_backoff(reconnect_attempt);
                 BINANCE_RECONNECTS.inc();
                 BINANCE_CONNECTED.set(0);
-                tracing::warn!("Failed to connect to Binance: {:?}. Retrying in {:?}", e, backoff);
+                tracing::warn!(attempt = reconnect_attempt, error = ?e, delay = ?backoff, "Failed to connect to Binance, retrying");
                 tokio::time::sleep(backoff).await;
                 reconnect_attempt = reconnect_attempt.saturating_add(1);
                 continue;

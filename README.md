@@ -28,9 +28,7 @@ cd backend
 cargo run --release
 
 # 2. Start Frontend
-cd frontend
-npm install
-npm run dev
+
 ```
 
 Open **http://localhost:5173** in your browser.
@@ -216,7 +214,7 @@ Candle throughput: ~100/sec
 
 ## 🔜 Roadmap
 
-- [ ] Database persistence (RocksDB)
+- [ ] Database persistence (embedded persistence layer)
 - [ ] JWT authentication
 - [ ] Multi-timeframe analysis
 - [ ] Paper trading execution

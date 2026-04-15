@@ -232,7 +232,9 @@ export default function ChartPanel({ symbol, signals = [] }) {
       queryParams.set('indicators', requestedIndicators)
     }
 
-    const ws = new WebSocket(`ws://localhost:3000/ws?${queryParams.toString()}`)
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+    const wsUrl = `${wsProtocol}://${window.location.host}/ws?${queryParams.toString()}`
+    const ws = new WebSocket(wsUrl)
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)

@@ -1,5 +1,5 @@
 // src/auth.rs
-use axum::{http::HeaderMap, response::IntoResponse, Json};
+use axum::{http::HeaderMap, Json};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use serde_json::json;

@@ -1,4 +1,3 @@
-use fastrand::Rng;
 
 #[derive(Clone, Debug)]
 pub struct Genome {

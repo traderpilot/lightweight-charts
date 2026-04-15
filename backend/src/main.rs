@@ -14,6 +14,7 @@ mod utils;
 mod db;
 
 use std::sync::Arc;
+use std::time::Duration;
 use db::DbStore;
 use std::collections::VecDeque;
 use dashmap::DashMap;
@@ -73,7 +74,18 @@ async fn main() {
     let health_state = HealthState::new();
     let health_state_clone = health_state.clone();
 
-    let db = Arc::new(DbStore::open("data/rocksdb").expect("Failed to open RocksDB storage"));
+    let db = Arc::new(DbStore::open("data/persistence").expect("Failed to open persistence storage"));
+
+    let db_flush = db.clone();
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(5));
+        loop {
+            interval.tick().await;
+            if let Err(e) = db_flush.flush() {
+                tracing::error!(error = %e, "Failed periodic persistence flush");
+            }
+        }
+    });
 
     // Create app state with DashMap and sequence tracker
     let state = AppState {
@@ -87,14 +99,12 @@ async fn main() {
         db: db.clone(),
     };
 
-    if let Ok(symbols) = db.list_symbols() {
-        for symbol in symbols {
-            if let Ok(candles) = db.load_candle_history(&symbol) {
-                if !candles.is_empty() {
-                    state.candles_cache.insert(symbol.clone(), VecDeque::from(candles.clone()));
-                    state.health_state.update_cache_size(&symbol, candles.len());
-                    tracing::info!(symbol = %symbol, count = candles.len(), "Loaded candle history from persistence");
-                }
+    for symbol in db.list_symbols() {
+        if let Ok(candles) = db.load_candle_history(&symbol) {
+            if !candles.is_empty() {
+                state.candles_cache.insert(symbol.clone(), VecDeque::from(candles.clone()));
+                state.health_state.update_cache_size(&symbol, candles.len());
+                tracing::info!(symbol = %symbol, count = candles.len(), "Loaded candle history from persistence");
             }
         }
     }
@@ -181,9 +191,9 @@ async fn main() {
     }
 
     if let Err(e) = state.db.flush() {
-        tracing::error!("Failed to flush RocksDB on shutdown: {}", e);
+        tracing::error!("Failed to flush persistence storage on shutdown: {}", e);
     } else {
-        tracing::info!("RocksDB flushed successfully on shutdown");
+        tracing::info!("Persistence storage flushed successfully on shutdown");
     }
 
     let metrics_dump = metrics::flush_metrics();
